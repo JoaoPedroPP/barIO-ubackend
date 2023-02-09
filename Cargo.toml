@@ -11,3 +11,6 @@ license-file = "LICENSE"
 rustls = "0.20.6"
 actix-web = { version="4", features=["rustls"] }
 dotenv = "0.15.0"
+actix-multipart = "0.5.0"
+futures-util = "0.3.26"
+actix-cors = "0.6.4"
