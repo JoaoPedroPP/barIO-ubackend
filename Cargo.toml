@@ -8,9 +8,10 @@ license-file = "LICENSE"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rustls = "0.20.6"
-actix-web = { version="4", features=["rustls"] }
+openssl = { version = "0.10", features = ["vendored"] }
+actix-web = { version="4", features=["openssl"] }
 dotenv = "0.15.0"
 actix-multipart = "0.5.0"
 futures-util = "0.3.26"
 actix-cors = "0.6.4"
+rdkafka = { version = "0.25", features = ["cmake-build", "ssl"] }
