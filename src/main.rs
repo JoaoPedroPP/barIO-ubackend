@@ -10,6 +10,7 @@ mod services;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dotenv::dotenv().ok();
     HttpServer::new(move || {
         let cors = Cors::default()
             // .allow_any_origin()
@@ -23,6 +24,7 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/api")
                     .route("/upload", web::post().to(services::upload_cos))
+                    .route("/process", web::post().to(services::trigger_kafka))
             )
     })
     .bind("0.0.0.0:8080")?
