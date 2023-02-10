@@ -12,19 +12,24 @@ use actix_web::{
     http::StatusCode
 };
 
+use super::{
+    KafkaPayload,
+    upload_image,
+};
+
 pub async fn upload_cos(mut payload: Multipart) -> Result<HttpResponse, Error> {
-    // let p = format!("{}", payload);
-    // println!("{:?}", payload);
     while let Some(item) = payload.next().await {
         let mut field = item?;
-        println!("{:?}", field);
-        // let filename = content_disposition.get_filename();
-        // let filepath = format!("./tmp/{filename}");
+        while let Some(chunk) = field.next().await {
+            let content_disposition = field.content_disposition().clone();
+            let filename = content_disposition.get_filename().unwrap().to_string();
+            web::block(move||upload_image(filename, chunk.unwrap()));
+        }
     }
     Ok(HttpResponse::Ok().body("ssss"))
 }
 
-pub async fn trigger_kafka() -> Result<HttpResponse, Error> {
+pub async fn trigger_kafka(payload: web::Json<KafkaPayload>) -> Result<HttpResponse, Error> {
     let kafka_servers = env::var("KAFKA_SERVERS").expect("KAFKA_SERVERS not set");
     let kafka_username = env::var("KAFKA_USERNAME").expect("KAFKA_USERNAME not set");
     let kafka_password = env::var("KAFKA_PASSWORD").expect("KAFKA_PASSWORD not set");
