@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, thread, time::Duration};
 use actix_multipart::Multipart;
 use futures_util::StreamExt;
 use rdkafka::{
@@ -30,10 +30,12 @@ pub async fn upload_cos(mut payload: Multipart) -> Result<HttpResponse, Error> {
 }
 
 pub async fn trigger_kafka(payload: web::Json<KafkaPayload>) -> Result<HttpResponse, Error> {
+    let raw: KafkaPayload = payload.clone();
+    let data: Vec<u8> = bincode::serialize(&raw).unwrap();
     let kafka_servers = env::var("KAFKA_SERVERS").expect("KAFKA_SERVERS not set");
     let kafka_username = env::var("KAFKA_USERNAME").expect("KAFKA_USERNAME not set");
     let kafka_password = env::var("KAFKA_PASSWORD").expect("KAFKA_PASSWORD not set");
-    let kafka_producer_topic = env::var("KAFKA_PRODUCER_TOPIC").expect("KAFKA_PRODUCER_TOPIC not set");
+    let kafka_producer_topic = env::var("KAFKA_CONSUMER_TOPIC").expect("KAFKA_PRODUCER_TOPIC not set");
 
     let producer: BaseProducer = ClientConfig::new()
         .set("bootstrap.servers", kafka_servers)
@@ -44,10 +46,12 @@ pub async fn trigger_kafka(payload: web::Json<KafkaPayload>) -> Result<HttpRespo
         .create()
         .expect("Invalid Kafka Producer Config");
 
-    match producer.send(BaseRecord::to(&kafka_producer_topic).key("msg").payload("data")) {
+    
+    match producer.send(BaseRecord::to(&kafka_producer_topic).key("msg").payload(&data)) {
         Ok(_) => {
             println!("Submited to Kafka");
-            Ok(HttpResponse::Ok().body("uuuu"))
+            thread::sleep(Duration::from_secs(3));
+            Ok(HttpResponse::Ok().status(StatusCode::from_u16(201u16).unwrap()).finish())
         },
         Err(_) => {
             println!("Msg could not be sent to kafka");
