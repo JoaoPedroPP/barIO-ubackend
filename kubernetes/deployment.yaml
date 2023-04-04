@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: default
+  name: bario-beck-beck
+  labels:
+    app: bario-beck
+spec:
+  selector:
+    matchLabels:
+      app: bario-beck
+  template:
+    metadata:
+      namespace: default
+      name: bario-beck
+      labels:
+        app: bario-beck
+    spec:
+      containers:
+        - name: bario-beck
+          image: joaopedropp/bario-back
+          envFrom:
+            - configMapRef:
+                name: cm-bario-beck
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: default
+  name: cm-bario-beck
+  labels:
+    app: bario-beck
+data:
+  IBM_TOKEN_URL: <IBM_TOKEN_URL>
+  IBM_APIKEY: <YOUR_IBM_APIKEY>
+  COS_URL: <IBM_COS_URL>
+  COS_BUCKET: <YOUR_IBM_COS_URL>
+  uREDIS_URL: <YOUR_uREDIS_URL>
+  KAFKA_SERVERS: <YOUR_KAFKA_SERVERS>
+  KAFKA_USERNAME: <YOUR_KAFKA_USERNAME>
+  KAFKA_PASSWORD: <YOUR_KAFKA_PASSWORD>
+  KAFKA_GROUP: <YOUR_KAFKA_GROUP>
+  KAFKA_CONSUMER_TOPIC: <YOUR_KAFKA_CONSUMER_TOPIC>
+  KAFKA_PRODUCER_TOPIC:
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: default
+  name: svc-bario-beck
+  labels:
+    app: bario-beck
+spec:
+  ports:
+    - port: 8080
+  selector:
+    name: bario-beck-beck
+    app: bario-beck
+  type: NodePort
